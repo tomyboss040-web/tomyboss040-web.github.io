@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AeroGrow – Harvest Calendar & Reservations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F2F7FB;
+  --surface: #FFFFFF;
+  --ink: #1B1F4B;
+  --ink-soft: #4B5080;
+  --line: #DCE4F0;
+  --coral: #FF6B4A;
+  --coral-ink: #B8321A;
+  --leaf: #2DBE6C;
+  --leaf-soft: #D5F5E3;
+  --sun: #FFC93C;
+  --aqua: #19B5C9;
+  --grape: #7B5CFA;
+  --pink: #FF5FA2;
+  --shadow: 0 10px 30px rgba(27,31,75,.08);
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12143A; --surface: #1D2059; --ink: #F2F4FF; --ink-soft: #B5B9E6; --line: #33377A;
+    --leaf-soft: #17483A; --coral-ink: #FF9A82; --shadow: 0 10px 30px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12143A; --surface: #1D2059; --ink: #F2F4FF; --ink-soft: #B5B9E6; --line: #33377A;
+  --leaf-soft: #17483A; --coral-ink: #FF9A82; --shadow: 0 10px 30px rgba(0,0,0,.3);
+}
+*, *::before, *::after { box-sizing: inherit; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 1.0625rem; line-height: 1.55;
+}
+h1, h2, h3 { font-family: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif; line-height: 1.05; margin: 0; letter-spacing: -0.02em; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--grape); outline-offset: 3px; border-radius: 6px; }
+.wrap { width: min(1120px, 100% - 40px); margin-inline: auto; }
+
+/* nav */
+header.top { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; gap: 16px; }
+.logo { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 1.4rem; text-decoration: none; display: flex; align-items: center; gap: 10px; }
+.logo i { width: 26px; height: 26px; background: var(--leaf); border-radius: 0 80% 0 80%; display: inline-block; transform: rotate(-8deg); }
+nav { display: flex; gap: 22px; font-weight: 600; font-size: .98rem; }
+nav a { text-decoration: none; color: var(--ink-soft); }
+nav a:hover { color: var(--ink); }
+@media (max-width: 640px) { nav a:not(.keep) { display: none; } }
+
+/* hero */
+.hero { display: grid; grid-template-columns: 1.15fr .85fr; gap: 40px; align-items: center; padding: 30px 0 70px; }
+.hero h1 { font-size: clamp(2.6rem, 6.2vw, 4.7rem); font-weight: 800; }
+.hero h1 .c1 { color: var(--leaf); }
+.hero h1 .c2 { color: var(--coral); }
+.hero h1 .c3 { color: var(--grape); }
+.hero p.lead { font-size: 1.2rem; color: var(--ink-soft); max-width: 46ch; margin: 22px 0 30px; }
+.btn { display: inline-block; border: 0; cursor: pointer; font: inherit; font-weight: 600; padding: 14px 24px; border-radius: 999px; text-decoration: none; transition: transform .15s; }
+.btn:active { transform: scale(.97); }
+.btn.primary { background: var(--coral); color: #1B1F4B; }
+.btn.primary:hover { background: #FF8266; }
+.btn.ghost { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); margin-left: 8px; }
+.tower { width: 100%; max-width: 420px; justify-self: center; }
+.tower .pod { transform-box: fill-box; transform-origin: center bottom; animation: sway 4s ease-in-out infinite; }
+@keyframes sway { 0%,100% { transform: scaleY(1); } 50% { transform: scaleY(1.08); } }
+@media (prefers-reduced-motion: reduce) { .tower .pod { animation: none; } html { scroll-behavior: auto; } }
+@media (max-width: 820px) { .hero { grid-template-columns: 1fr; } .tower { max-width: 300px; } }
+
+/* stats strip */
+.strip { background: var(--ink); color: #F2F4FF; border-radius: 28px; padding: 28px 34px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+:root[data-theme="dark"] .strip { background: #0A0B26; }
+.strip b { font-family: "Bricolage Grotesque", sans-serif; font-size: 2rem; display: block; line-height: 1.1; }
+.strip span { color: #B5B9E6; font-size: .95rem; }
+.strip div:nth-child(1) b { color: var(--sun); } .strip div:nth-child(2) b { color: #6BE3A0; } .strip div:nth-child(3) b { color: #FF9FC8; }
+@media (max-width: 640px) { .strip { grid-template-columns: 1fr; } }
+
+/* sections */
+section { padding: 80px 0 0; }
+.sec-head { display: flex; justify-content: space-between; align-items: end; gap: 24px; flex-wrap: wrap; margin-bottom: 28px; }
+.sec-head h2 { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; max-width: 16ch; }
+.sec-head p { color: var(--ink-soft); max-width: 42ch; margin: 8px 0 0; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { font: inherit; font-weight: 600; font-size: .95rem; padding: 9px 18px; border-radius: 999px; border: 2px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+:root[data-theme="dark"] .chip[aria-pressed="true"] { background: var(--sun); color: #1B1F4B; border-color: var(--sun); }
+
+/* crop grid */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 22px; }
+.card { background: var(--surface); border-radius: 24px; padding: 22px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 14px; border-top: 8px solid var(--c); }
+.card-top { display: flex; align-items: center; gap: 14px; }
+.leaf { width: 46px; height: 46px; background: var(--c); border-radius: 0 78% 0 78%; flex: none; }
+.card h3 { font-size: 1.45rem; font-weight: 800; }
+.kind { font-size: .9rem; color: var(--ink-soft); }
+.badge { margin-left: auto; font-weight: 600; font-size: .85rem; padding: 6px 12px; border-radius: 999px; background: var(--line); color: var(--ink); white-space: nowrap; }
+.badge.now { background: var(--leaf-soft); color: #0E6B37; }
+:root[data-theme="dark"] .badge.now { color: #7CF0AE; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .badge.now { color: #7CF0AE; } }
+.bar { height: 12px; background: var(--line); border-radius: 999px; overflow: hidden; }
+.bar > div { height: 100%; background: var(--c); border-radius: 999px; }
+.meta { display: flex; justify-content: space-between; font-size: .92rem; color: var(--ink-soft); }
+.meta strong { color: var(--ink); }
+.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: .92rem; }
+.facts div { background: var(--bg); border-radius: 14px; padding: 10px 12px; }
+.facts small { display: block; color: var(--ink-soft); font-size: .8rem; }
+.card .btn { margin-top: auto; text-align: center; background: var(--ink); color: var(--bg); }
+:root[data-theme="dark"] .card .btn { background: var(--sun); color: #1B1F4B; }
+.card .btn:hover { background: var(--coral); color: #1B1F4B; }
+.card .btn[disabled] { opacity: .5; cursor: not-allowed; }
+.empty { padding: 30px; text-align: center; color: var(--ink-soft); background: var(--surface); border-radius: 24px; }
+
+/* card buttons + growth record */
+.card .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: auto; }
+.card .btns .btn { margin: 0; padding: 12px 10px; }
+.card .btn.alt { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); }
+:root[data-theme="dark"] .card .btn.alt { background: transparent; color: var(--ink); }
+.card .btn.alt:hover { background: var(--leaf-soft); color: var(--ink); }
+#gdlg { width: min(780px, 100% - 32px); max-height: calc(100dvh - 32px); overflow: auto; }
+.g-top { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.g-top .leaf { width: 56px; height: 56px; background: var(--c); }
+.g-top h2 { font-size: 2rem; }
+.g-top .sub { margin: 2px 0 0; color: var(--ink-soft); }
+.g-top .x { margin-left: auto; }
+.g-h { font-size: 1.25rem; font-weight: 800; margin: 28px 0 12px; }
+.stages { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.stage { border-top: 8px solid var(--line); padding-top: 8px; font-size: .9rem; }
+.stage.done, .stage.cur { border-top-color: var(--c); }
+.stage b { display: block; font-size: 1rem; }
+.stage em { font-style: normal; font-weight: 600; font-size: .8rem; padding: 2px 8px; border-radius: 999px; background: var(--line); }
+.stage.cur em { background: var(--c); color: #1B1F4B; }
+.stage.done em { background: var(--leaf-soft); color: #0E6B37; }
+:root[data-theme="dark"] .stage.done em { color: #7CF0AE; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .stage.done em { color: #7CF0AE; } }
+.stage small { display: block; color: var(--ink-soft); margin-top: 4px; }
+@media (max-width: 640px) { .stages { grid-template-columns: 1fr 1fr; } }
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.tile { background: var(--bg); border-radius: 16px; padding: 14px; }
+.tile b { font-family: "Bricolage Grotesque", sans-serif; font-size: 1.6rem; display: block; line-height: 1.1; }
+.tile span { font-size: .85rem; color: var(--ink-soft); }
+@media (max-width: 640px) { .tiles { grid-template-columns: 1fr 1fr; } }
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.chart { background: var(--bg); border-radius: 18px; padding: 12px; }
+.chart svg { width: 100%; height: auto; display: block; }
+.chart .ax { fill: var(--ink-soft); font-size: 12px; font-family: "Figtree", sans-serif; }
+.chart .gl { stroke: var(--line); stroke-width: 1; }
+.chart-note { font-size: .9rem; color: var(--ink-soft); margin: 8px 2px 0; }
+.origin { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; margin: 0; }
+.origin div { border-bottom: 1px solid var(--line); padding: 8px 0; }
+.origin dt { font-size: .82rem; color: var(--ink-soft); }
+.origin dd { margin: 0; font-weight: 600; }
+@media (max-width: 640px) { .origin { grid-template-columns: 1fr; } }
+.fresh { margin-top: 18px; background: var(--leaf-soft); color: #10381F; border-radius: 18px; padding: 16px 18px; font-weight: 500; }
+:root[data-theme="dark"] .fresh { color: #D5F5E3; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .fresh { color: #D5F5E3; } }
+.eg { font-size: .85rem; color: var(--ink-soft); margin-top: 14px; }
+
+/* how */
+.how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.how article { border-radius: 26px; padding: 28px; }
+.how article:nth-child(1) { background: #C9F2DA; color: #10381F; }
+.how article:nth-child(2) { background: #FFE7A3; color: #3D2E00; }
+.how article:nth-child(3) { background: #DCD3FF; color: #241A5E; }
+.how h3 { font-size: 1.5rem; margin-bottom: 10px; }
+.how p { margin: 0; }
+@media (max-width: 820px) { .how { grid-template-columns: 1fr; } }
+
+/* reservations */
+#res-list { display: grid; gap: 12px; }
+.res { background: var(--surface); border-radius: 18px; padding: 16px 20px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; box-shadow: var(--shadow); border-left: 8px solid var(--c); }
+.res .grow { flex: 1; min-width: 200px; }
+.res small { color: var(--ink-soft); display: block; }
+.link { background: none; border: 0; font: inherit; font-weight: 600; color: var(--coral-ink); cursor: pointer; text-decoration: underline; }
+
+/* dialog */
+dialog { border: 0; border-radius: 28px; padding: 0; width: min(520px, 100% - 32px); background: var(--surface); color: var(--ink); box-shadow: 0 30px 80px rgba(0,0,0,.35); }
+dialog::backdrop { background: rgba(27,31,75,.55); }
+.dlg { padding: 30px; }
+.dlg h2 { font-size: 1.9rem; margin-bottom: 6px; }
+.dlg .sub { color: var(--ink-soft); margin: 0 0 20px; }
+label { display: block; font-weight: 600; font-size: .95rem; margin: 14px 0 6px; }
+input, textarea { width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 2px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+input:focus, textarea:focus { border-color: var(--grape); outline: none; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.hint { font-size: .85rem; color: var(--ink-soft); margin-top: 4px; }
+.err { color: var(--coral-ink); font-size: .9rem; margin-top: 12px; min-height: 1.2em; font-weight: 600; }
+.actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+.actions .btn.ghost { margin: 0; }
+
+/* toast */
+#toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 30px); opacity: 0; background: var(--ink); color: var(--bg); padding: 14px 22px; border-radius: 999px; font-weight: 600; transition: .3s; pointer-events: none; z-index: 50; max-width: calc(100% - 32px); text-align: center; }
+:root[data-theme="dark"] #toast { background: var(--leaf); color: #10381F; }
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+footer { margin-top: 90px; padding: 34px 0 40px; border-top: 2px solid var(--line); color: var(--ink-soft); font-size: .92rem; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="logo" href="#top"><i></i>AeroGrow</a>
+    <nav>
+      <a href="#calendar">Harvest calendar</a>
+      <a href="#how">How we grow</a>
+      <a href="#reservations" class="keep">My reservations</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <div class="hero">
+      <div>
+        <h1>Know the day your <span class="c1">greens</span> are <span class="c2">ready</span>, then <span class="c3">reserve</span> them.</h1>
+        <p class="lead">Fresh herbs and leafy greens grown indoors, a few kilometres from your kitchen. See every batch, its harvest date and where it grew, and book the quantity you need ahead of time.</p>
+        <a class="btn primary" href="#calendar">See what's growing</a>
+        <a class="btn ghost" href="#how">How it works</a>
+      </div>
+      <svg class="tower" id="tower" viewBox="0 0 360 420" role="img" aria-label="Illustration of a vertical farm tower with four shelves of colourful plants"></svg>
+    </div>
+
+    <div class="strip">
+      <div><b>9 crops</b><span>growing right now, all with a forecast harvest date</span></div>
+      <div><b>Same day</b><span>harvested and delivered to you</span></div>
+      <div><b>~95% less water</b><span>than field growing (example figure)</span></div>
+    </div>
+
+    <section id="calendar">
+      <div class="sec-head">
+        <div>
+          <h2>Harvest calendar</h2>
+          <p>Dates update every day from the growth stage of each batch.</p>
+        </div>
+        <div class="chips" role="group" aria-label="Filter crops">
+          <button class="chip" data-f="all" aria-pressed="true">All</button>
+          <button class="chip" data-f="Herb" aria-pressed="false">Herbs</button>
+          <button class="chip" data-f="Leafy green" aria-pressed="false">Leafy greens</button>
+          <button class="chip" data-f="week" aria-pressed="false">Ready within 7 days</button>
+        </div>
+      </div>
+      <div class="grid" id="grid"></div>
+    </section>
+
+    <section id="how">
+      <div class="sec-head"><h2>Grown with data, not guesswork</h2></div>
+      <div class="how">
+        <article>
+          <h3>Sensors watch every tray</h3>
+          <p>IoT sensors track water, nutrients, temperature, humidity and light in each tower, so every batch gets exactly what it needs and nothing is wasted.</p>
+        </article>
+        <article>
+          <h3>AI sets the harvest date</h3>
+          <p>The growing system learns from each cycle and adjusts conditions on its own. The forecast date you see here comes from that same data.</p>
+        </article>
+        <article>
+          <h3>You see the full story</h3>
+          <p>Every batch shows where it grew, when it was sown and how far it travels. Proof of freshness and origin that you can pass on to your own guests.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="reservations">
+      <div class="sec-head">
+        <div>
+          <h2>My reservations</h2>
+          <p>Reservations are saved in this browser on this device.</p>
+        </div>
+      </div>
+      <div id="res-list"></div>
+    </section>
+  </main>
+
+  <footer>
+    <span>AeroGrow · Urban vertical farm</span>
+    <span>Prototype: batch data and figures are examples.</span>
+  </footer>
+</div>
+
+<dialog id="dlg" aria-labelledby="dlg-title">
+  <div class="dlg">
+    <h2 id="dlg-title">Reserve</h2>
+    <p class="sub" id="dlg-sub"></p>
+    <div id="dlg-form">
+      <label for="f-biz">Business name</label>
+      <input id="f-biz" type="text" autocomplete="organization" placeholder="e.g. Restaurant De Tuin">
+      <label for="f-mail">Email</label>
+      <input id="f-mail" type="email" autocomplete="email" placeholder="you@business.com">
+      <div class="row">
+        <div>
+          <label for="f-qty">Quantity (kg)</label>
+          <input id="f-qty" type="number" min="1" step="1" value="2">
+          <div class="hint" id="qty-hint"></div>
+        </div>
+        <div>
+          <label for="f-date">Delivery date</label>
+          <input id="f-date" type="date">
+          <div class="hint" id="date-hint"></div>
+        </div>
+      </div>
+      <label for="f-note">Note (optional)</label>
+      <textarea id="f-note" rows="2" placeholder="Delivery time, packaging, anything else"></textarea>
+      <div class="err" id="err" role="alert"></div>
+      <div class="actions">
+        <button class="btn ghost" id="cancel" type="button">Cancel</button>
+        <button class="btn primary" id="confirm" type="button">Confirm reservation</button>
+      </div>
+    </div>
+  </div>
+</dialog>
+<dialog id="gdlg" aria-labelledby="g-title"><div class="dlg" id="g-body"></div></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  // ---- Example data. sown = days already grown, cycle = total days to harvest. ----
+  var CROPS = [
+    { id: "basil",   name: "Genovese basil",    kind: "Herb",        color: "#2DBE6C", cycle: 28, grown: 21, kg: 12, price: 38, tower: "A2" },
+    { id: "mint",    name: "Spearmint",         kind: "Herb",        color: "#19B5C9", cycle: 35, grown: 35, kg: 8,  price: 34, tower: "B1" },
+    { id: "coriander", name: "Coriander",       kind: "Herb",        color: "#8BC34A", cycle: 30, grown: 12, kg: 9,  price: 36, tower: "A4" },
+    { id: "redbasil", name: "Red basil",        kind: "Herb",        color: "#7B5CFA", cycle: 30, grown: 26, kg: 6,  price: 42, tower: "B3" },
+    { id: "rocket",  name: "Rocket (arugula)",  kind: "Leafy green", color: "#FFB020", cycle: 24, grown: 24, kg: 15, price: 22, tower: "C1" },
+    { id: "lettuce", name: "Butterhead lettuce",kind: "Leafy green", color: "#4CD97B", cycle: 32, grown: 18, kg: 25, price: 14, tower: "C2" },
+    { id: "pakchoi", name: "Baby pak choi",     kind: "Leafy green", color: "#FF6B4A", cycle: 38, grown: 9,  kg: 18, price: 16, tower: "D1" },
+    { id: "kale",    name: "Baby kale",         kind: "Leafy green", color: "#FF5FA2", cycle: 28, grown: 27, kg: 14, price: 20, tower: "D3" },
+    { id: "nasturtium", name: "Nasturtium leaves", kind: "Herb",     color: "#F4841F", cycle: 45, grown: 30, kg: 4,  price: 64, tower: "B4" }
+  ];
+  var KEY = "aerogrow.reservations.v1";
+  var today = new Date(); today.setHours(0,0,0,0);
+
+  function addDays(d, n) { var x = new Date(d); x.setDate(x.getDate() + n); return x; }
+  function iso(d) { var m = d.getMonth() + 1, day = d.getDate(); return d.getFullYear() + "-" + (m < 10 ? "0" : "") + m + "-" + (day < 10 ? "0" : "") + day; }
+  function fmt(d) { return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" }); }
+  function fmtIso(s) { var p = s.split("-"); return fmt(new Date(+p[0], +p[1] - 1, +p[2])); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+
+  CROPS.forEach(function (c) {
+    c.left = Math.max(0, c.cycle - c.grown);
+    c.ready = addDays(today, c.left);
+    c.pct = Math.min(100, Math.round(c.grown / c.cycle * 100));
+  });
+  CROPS.sort(function (a, b) { return a.left - b.left; });
+
+  // ---- Reservations (stored in this browser only) ----
+  var reservations = [];
+  try { var raw = localStorage.getItem(KEY); if (raw) reservations = JSON.parse(raw) || []; } catch (e) { reservations = []; }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(reservations)); } catch (e) {} }
+  function reserved(id) { return reservations.filter(function (r) { return r.crop === id; }).reduce(function (s, r) { return s + r.qty; }, 0); }
+  function available(c) { return Math.max(0, c.kg - reserved(c.id)); }
+
+  // ---- Hero tower illustration ----
+  (function () {
+    var svg = document.getElementById("tower"), cols = ["#2DBE6C", "#FFB020", "#7B5CFA", "#FF5FA2", "#19B5C9", "#FF6B4A", "#8BC34A", "#F4841F"];
+    var out = '<rect x="20" y="10" width="320" height="400" rx="34" fill="none" stroke="currentColor" stroke-width="6"/>';
+    for (var s = 0; s < 4; s++) {
+      var y = 48 + s * 92;
+      out += '<rect x="42" y="' + y + '" width="276" height="8" rx="4" fill="#FF5FA2" opacity=".85"/>';
+      out += '<rect x="42" y="' + (y + 68) + '" width="276" height="10" rx="5" fill="currentColor" opacity=".18"/>';
+      for (var p = 0; p < 5; p++) {
+        var x = 52 + p * 54, col = cols[(s * 3 + p * 2) % cols.length], h = 34 + ((s + p * 3) % 3) * 8;
+        out += '<g class="pod" style="animation-delay:' + ((s * 5 + p) * 0.23).toFixed(2) + 's">' +
+               '<path d="M' + (x + 22) + ' ' + (y + 68) + ' q-24 -' + h + ' 0 -' + (h + 6) + ' q24 6 0 ' + (h + 6) + 'z" fill="' + col + '"/>' +
+               '<rect x="' + (x + 20) + '" y="' + (y + 40) + '" width="4" height="28" rx="2" fill="#0E6B37" opacity=".35"/></g>';
+      }
+    }
+    svg.innerHTML = out;
+  })();
+
+  // ---- Crop cards ----
+  var filter = "all", grid = document.getElementById("grid");
+  function render() {
+    var list = CROPS.filter(function (c) {
+      if (filter === "all") return true;
+      if (filter === "week") return c.left <= 7;
+      return c.kind === filter;
+    });
+    if (!list.length) { grid.innerHTML = '<div class="empty">No crops match this filter. Choose "All" to see every batch.</div>'; return; }
+    grid.innerHTML = list.map(function (c) {
+      var av = available(c), now = c.left === 0;
+      var badge = now ? '<span class="badge now">Ready now</span>' :
+                  '<span class="badge">Ready in ' + c.left + (c.left === 1 ? ' day' : ' days') + '</span>';
+      return '<article class="card" style="--c:' + c.color + '">' +
+        '<div class="card-top"><div class="leaf"></div><div><h3>' + esc(c.name) + '</h3><div class="kind">' + esc(c.kind) + '</div></div>' + badge + '</div>' +
+        '<div><div class="bar" role="progressbar" aria-valuenow="' + c.pct + '" aria-valuemin="0" aria-valuemax="100" aria-label="Growth progress"><div style="width:' + c.pct + '%"></div></div>' +
+        '<div class="meta" style="margin-top:8px"><span>Day ' + c.grown + ' of ' + c.cycle + '</span><span>Harvest <strong>' + fmt(c.ready) + '</strong></span></div></div>' +
+        '<div class="facts"><div><small>Available</small><strong>' + av + ' kg</strong></div><div><small>Price</small><strong>€' + c.price + ' / kg</strong></div>' +
+        '<div><small>Grown in</small><strong>Tower ' + c.tower + '</strong></div><div><small>Distance to you</small><strong>Under 10 km</strong></div></div>' +
+        '<div class="btns"><button class="btn alt" data-story="' + c.id + '">Growth record</button>' +
+        '<button class="btn" data-id="' + c.id + '"' + (av < 1 ? ' disabled' : '') + '>' + (av < 1 ? 'Fully reserved' : 'Reserve') + '</button></div>' +
+        '</article>';
+    }).join("");
+  }
+  document.querySelectorAll(".chip").forEach(function (b) {
+    b.addEventListener("click", function () {
+      filter = b.getAttribute("data-f");
+      document.querySelectorAll(".chip").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+      render();
+    });
+  });
+  grid.addEventListener("click", function (e) {
+    var s = e.target.closest("button[data-story]");
+    if (s) { openStory(s.getAttribute("data-story")); return; }
+    var b = e.target.closest("button[data-id]");
+    if (b && !b.disabled) openDialog(b.getAttribute("data-id"));
+  });
+
+  // ---- Reservation dialog ----
+  var dlg = document.getElementById("dlg"), current = null;
+  var fBiz = document.getElementById("f-biz"), fMail = document.getElementById("f-mail"),
+      fQty = document.getElementById("f-qty"), fDate = document.getElementById("f-date"),
+      fNote = document.getElementById("f-note"), err = document.getElementById("err");
+
+  function openDialog(id) {
+    current = CROPS.filter(function (c) { return c.id === id; })[0];
+    var av = available(current);
+    document.getElementById("dlg-title").textContent = "Reserve " + current.name;
+    document.getElementById("dlg-sub").textContent = "Harvest forecast: " + fmt(current.ready) + ". €" + current.price + " per kg.";
+    fQty.max = av; fQty.value = Math.min(2, av);
+    document.getElementById("qty-hint").textContent = "Up to " + av + " kg available";
+    fDate.min = iso(current.ready); fDate.value = iso(current.ready);
+    document.getElementById("date-hint").textContent = "From " + fmt(current.ready);
+    err.textContent = "";
+    if (typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", "");
+    fBiz.focus();
+  }
+  document.getElementById("cancel").addEventListener("click", function () { dlg.close(); });
+  document.getElementById("confirm").addEventListener("click", function () {
+    var biz = fBiz.value.trim(), mail = fMail.value.trim(), qty = parseInt(fQty.value, 10), date = fDate.value;
+    var av = available(current);
+    if (!biz) { err.textContent = "Enter your business name."; fBiz.focus(); return; }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)) { err.textContent = "Enter a valid email address so we can confirm your order."; fMail.focus(); return; }
+    if (!qty || qty < 1 || qty > av) { err.textContent = "Choose a quantity between 1 and " + av + " kg."; fQty.focus(); return; }
+    if (!date || date < iso(current.ready)) { err.textContent = "Choose a delivery date on or after " + fmt(current.ready) + "."; fDate.focus(); return; }
+    reservations.push({ id: Date.now(), crop: current.id, name: current.name, color: current.color, biz: biz, mail: mail, qty: qty, date: date, note: fNote.value.trim(), price: current.price });
+    save();
+    dlg.close();
+    fNote.value = "";
+    render(); renderRes();
+    toast("Reserved " + qty + " kg of " + current.name + " for " + fmtIso(date) + ".");
+  });
+
+  // ---- My reservations ----
+  var resList = document.getElementById("res-list");
+  function renderRes() {
+    if (!reservations.length) {
+      resList.innerHTML = '<div class="empty">You have no reservations yet. Pick a batch in the harvest calendar and choose "Reserve this batch".</div>';
+      return;
+    }
+    resList.innerHTML = reservations.slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; }).map(function (r) {
+      return '<div class="res" style="--c:' + r.color + '"><div class="grow"><strong>' + esc(r.name) + '</strong> · ' + r.qty + ' kg' +
+        '<small>Delivery ' + fmtIso(r.date) + ' for ' + esc(r.biz) + '</small>' + (r.note ? '<small>Note: ' + esc(r.note) + '</small>' : '') + '</div>' +
+        '<strong>€' + (r.qty * r.price) + '</strong><button class="link" data-cancel="' + r.id + '">Cancel reservation</button></div>';
+    }).join("");
+  }
+  resList.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-cancel]");
+    if (!b) return;
+    var id = +b.getAttribute("data-cancel");
+    reservations = reservations.filter(function (r) { return r.id !== id; });
+    save(); render(); renderRes(); toast("Reservation cancelled.");
+  });
+
+  var tt;
+  function toast(msg) {
+    var t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show");
+    clearTimeout(tt); tt = setTimeout(function () { t.classList.remove("show"); }, 3200);
+  }
+
+  // ---- Growth record: example sensor history for each batch ----
+  var SPEC = {
+    basil:      { light: 16, temp: 24, seed: "Organic seed, Dutch supplier" },
+    mint:       { light: 14, temp: 21, seed: "Organic cuttings, own mother plants" },
+    coriander:  { light: 16, temp: 21, seed: "Organic seed, Dutch supplier" },
+    redbasil:   { light: 16, temp: 24, seed: "Organic seed, Italian supplier" },
+    rocket:     { light: 14, temp: 19, seed: "Organic seed, Dutch supplier" },
+    lettuce:    { light: 16, temp: 20, seed: "Organic seed, Dutch supplier" },
+    pakchoi:    { light: 15, temp: 21, seed: "Untreated seed, Dutch supplier" },
+    kale:       { light: 15, temp: 19, seed: "Organic seed, German supplier" },
+    nasturtium: { light: 16, temp: 22, seed: "Organic seed, Dutch supplier" }
+  };
+  CROPS.forEach(function (c) {
+    var s = SPEC[c.id] || {};
+    c.light = s.light || 16; c.temp = s.temp || 22; c.seed = s.seed || "Organic seed";
+    c.sown = addDays(today, -c.grown);
+  });
+  var METRICS = {
+    water: { label: "Water", unit: "L per day", dec: 1, desc: "Water given to the whole batch each day. It rises as the plants grow." },
+    light: { label: "Light", unit: "hours per day", dec: 1, desc: "LED light hours per day. Seeds start in the dark, then get a steady daily schedule." },
+    temp:  { label: "Temperature", unit: "°C", dec: 1, desc: "Air temperature in the tower, kept in a narrow range for this crop." },
+    ec:    { label: "Nutrients", unit: "mS/cm", dec: 2, desc: "Strength of the nutrient solution. It increases as the plants need more." }
+  };
+  function hash(s) { var h = 7; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; }
+  function rng(seed) { var s = seed >>> 0; return function () { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; }; }
+  function series(c, key) {
+    var r = rng(hash(c.id + key)), out = [];
+    for (var d = 0; d <= c.grown; d++) {
+      var t = d / c.cycle, n = r() - 0.5, v;
+      if (key === "water") v = (0.5 + 2.4 * t) * (c.kg / 10) * (1 + n * 0.2);
+      else if (key === "light") v = d < 2 ? 0 : c.light + n * 0.4;
+      else if (key === "temp") v = c.temp + Math.sin(d / 2) * 0.5 + n * 0.6;
+      else v = 0.8 + 1.4 * t + n * 0.08;
+      out.push(v);
+    }
+    return out;
+  }
+  function sum(a) { return a.reduce(function (x, y) { return x + y; }, 0); }
+
+  function chart(c, key) {
+    var m = METRICS[key], v = series(c, key), W = 600, H = 230, L = 46, R = 14, T = 14, B = 34;
+    var mn = Math.min.apply(null, v), mx = Math.max.apply(null, v);
+    if (key === "light") mn = 0;
+    var span = (mx - mn) || 1; mx += span * 0.12; if (key !== "light") mn -= span * 0.12;
+    if (key === "water") mn = Math.max(0, mn);
+    function X(i) { return L + (W - L - R) * i / (v.length - 1); }
+    function Y(x) { return T + (H - T - B) * (1 - (x - mn) / (mx - mn)); }
+    var out = "", i, val;
+    for (i = 0; i <= 3; i++) {
+      val = mn + (mx - mn) * i / 3;
+      out += '<line class="gl" x1="' + L + '" x2="' + (W - R) + '" y1="' + Y(val).toFixed(1) + '" y2="' + Y(val).toFixed(1) + '"/>' +
+             '<text class="ax" x="' + (L - 8) + '" y="' + (Y(val) + 4).toFixed(1) + '" text-anchor="end">' + val.toFixed(m.dec === 2 ? 1 : 0 + (mx - mn < 6 ? 1 : 0)) + '</text>';
+    }
+    var line = v.map(function (y, k) { return (k ? "L" : "M") + X(k).toFixed(1) + " " + Y(y).toFixed(1); }).join(" ");
+    out += '<path d="' + line + ' L' + X(v.length - 1).toFixed(1) + " " + Y(mn).toFixed(1) + " L" + L + " " + Y(mn).toFixed(1) + 'Z" fill="' + c.color + '" opacity=".22"/>' +
+           '<path d="' + line + '" fill="none" stroke="' + c.color + '" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>' +
+           '<text class="ax" x="' + L + '" y="' + (H - 8) + '">Day 0</text>' +
+           '<text class="ax" x="' + (L + (W - L - R) / 2) + '" y="' + (H - 8) + '" text-anchor="middle">Day ' + Math.round(c.grown / 2) + '</text>' +
+           '<text class="ax" x="' + (W - R) + '" y="' + (H - 8) + '" text-anchor="end">Day ' + c.grown + ' (today)</text>';
+    var lo = Math.min.apply(null, v.slice(key === "light" ? 2 : 0)), hi = Math.max.apply(null, v);
+    return '<div class="chart"><svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="' + m.label + ' over ' + c.grown + ' days, ' + m.unit + '">' + out + '</svg>' +
+           '<p class="chart-note">' + m.desc + ' Range so far: ' + lo.toFixed(m.dec) + ' to ' + hi.toFixed(m.dec) + ' ' + m.unit + '.</p></div>';
+  }
+
+  var STAGES = [
+    { n: "Germination", a: 0, b: 0.12, t: "Seeds rest in darkness and stay moist" },
+    { n: "Seedling", a: 0.12, b: 0.4, t: "Lights on, first leaves open" },
+    { n: "Growth", a: 0.4, b: 0.85, t: "Fastest growth, most nutrients" },
+    { n: "Harvest ready", a: 0.85, b: 1, t: "Peak flavour, cut to order" }
+  ];
+  var gdlg = document.getElementById("gdlg"), gbody = document.getElementById("g-body"), gcur = null;
+
+  function openStory(id) {
+    var c = CROPS.filter(function (x) { return x.id === id; })[0]; gcur = c;
+    var w = sum(series(c, "water")), perKg = w / c.kg, saved = Math.max(0, Math.round((1 - perKg / 250) * 100));
+    var light = sum(series(c, "light")), tv = series(c, "temp"), avgT = sum(tv) / tv.length;
+    var recycled = 96 + Math.floor(rng(hash(c.id))() * 4);
+    var frac = c.grown / c.cycle;
+    var stages = STAGES.map(function (s) {
+      var st = frac >= s.b && s.b < 1 ? "done" : (frac >= s.a ? "cur" : "next");
+      if (s.b === 1 && frac >= 1) st = "cur";
+      var label = st === "done" ? "Done" : st === "cur" ? "Now" : "Next";
+      return '<div class="stage ' + st + '"><b>' + s.n + '</b><em>' + label + '</em><small>Day ' + Math.round(s.a * c.cycle) + " to " + Math.round(s.b * c.cycle) + '. ' + s.t + '</small></div>';
+    }).join("");
+    var tabs = Object.keys(METRICS).map(function (k, i) {
+      return '<button class="chip" data-metric="' + k + '" aria-pressed="' + (i === 0) + '">' + METRICS[k].label + '</button>';
+    }).join("");
+    var batch = "AG-" + c.tower + "-" + iso(c.sown).replace(/-/g, "");
+    var fresh = c.left === 0
+      ? "Ready to cut now. We harvest to order on your delivery day, so your greens reach you within hours of being cut."
+      : "Forecast harvest: " + fmt(c.ready) + ". We cut on your delivery day, so your greens reach you within hours of being cut.";
+    gbody.style.setProperty("--c", c.color);
+    gbody.innerHTML =
+      '<div class="g-top"><div class="leaf"></div><div><h2 id="g-title">' + esc(c.name) + '</h2><p class="sub">Growth record · Batch ' + batch + '</p></div>' +
+      '<button class="btn ghost x" data-close type="button">Close</button></div>' +
+      '<h3 class="g-h">Growth stages</h3><div class="stages">' + stages + '</div>' +
+      '<h3 class="g-h">What this batch has received so far</h3><div class="tiles">' +
+      '<div class="tile"><b>' + Math.round(w) + ' L</b><span>Water used by the batch</span></div>' +
+      '<div class="tile"><b>' + perKg.toFixed(1) + ' L</b><span>Water per kg, about ' + saved + '% less than field growing (example)</span></div>' +
+      '<div class="tile"><b>' + Math.round(light) + ' h</b><span>LED light so far</span></div>' +
+      '<div class="tile"><b>' + avgT.toFixed(1) + ' °C</b><span>Average temperature</span></div>' +
+      '<div class="tile"><b>' + recycled + '%</b><span>Nutrient water recycled</span></div>' +
+      '<div class="tile"><b>None</b><span>Pesticides used</span></div></div>' +
+      '<h3 class="g-h">Day-by-day conditions</h3><div class="tabs" role="group" aria-label="Choose a measurement">' + tabs + '</div><div id="g-chart">' + chart(c, "water") + '</div>' +
+      '<h3 class="g-h">Origin</h3><dl class="origin">' +
+      '<div><dt>Seed</dt><dd>' + esc(c.seed) + '</dd></div>' +
+      '<div><dt>Sown on</dt><dd>' + fmt(c.sown) + '</dd></div>' +
+      '<div><dt>Grown in</dt><dd>Tower ' + c.tower + ', indoor vertical farm</dd></div>' +
+      '<div><dt>Water source</dt><dd>Recycled nutrient solution</dd></div>' +
+      '<div><dt>Distance to you</dt><dd>Under 10 km</dd></div>' +
+      '<div><dt>Batch code</dt><dd>' + batch + '</dd></div></dl>' +
+      '<div class="fresh">' + fresh + '</div>' +
+      '<p class="eg">Example data for this prototype. In the real system these values would come from the tower sensors.</p>' +
+      '<div class="actions"><button class="btn ghost" data-close type="button">Close</button>' +
+      '<button class="btn primary" data-reserve type="button"' + (available(c) < 1 ? " disabled" : "") + '>Reserve this batch</button></div>';
+    if (typeof gdlg.showModal === "function") gdlg.showModal(); else gdlg.setAttribute("open", "");
+    gdlg.scrollTop = 0;
+  }
+  gdlg.addEventListener("click", function (e) {
+    if (e.target.closest("[data-close]")) { gdlg.close(); return; }
+    if (e.target.closest("[data-reserve]")) { gdlg.close(); openDialog(gcur.id); return; }
+    var t = e.target.closest("[data-metric]");
+    if (t) {
+      gbody.querySelectorAll("[data-metric]").forEach(function (x) { x.setAttribute("aria-pressed", x === t ? "true" : "false"); });
+      document.getElementById("g-chart").innerHTML = chart(gcur, t.getAttribute("data-metric"));
+    }
+  });
+
+  render(); renderRes();
+})();
+</script>
+</body>
+</html>
